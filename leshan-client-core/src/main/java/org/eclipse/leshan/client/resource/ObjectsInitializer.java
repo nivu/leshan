@@ -30,9 +30,10 @@ public class ObjectsInitializer {
 
     protected LwM2mInstanceEnablerFactory defaultFactory = new LwM2mInstanceEnablerFactory() {
         @Override
-        public LwM2mInstanceEnabler create(ObjectModel model) {
+        public LwM2mInstanceEnabler create(ObjectModel model, int instanceId) {
             SimpleInstanceEnabler simpleInstanceEnabler = new SimpleInstanceEnabler();
-            simpleInstanceEnabler.setObjectModel(model);
+            simpleInstanceEnabler.setModel(model);
+            simpleInstanceEnabler.setId(instanceId);
             return simpleInstanceEnabler;
         }
     };
@@ -158,11 +159,17 @@ public class ObjectsInitializer {
         LwM2mInstanceEnabler[] newInstances = new LwM2mInstanceEnabler[0];
         if (instances.containsKey(objectModel.id)) {
             newInstances = instances.get(objectModel.id);
+            for (int i = 0; i < newInstances.length; i++) {
+                LwM2mInstanceEnabler instance = newInstances[i];
+                System.out.println("set model " + objectModel.name);
+                instance.setModel(objectModel);
+                instance.setId(i);
+            }
         } else {
             // we create instance from class only for single object
             if (!objectModel.multiple) {
                 LwM2mInstanceEnablerFactory instanceFactory = getFactoryFor(objectModel);
-                newInstances = new LwM2mInstanceEnabler[] { instanceFactory.create(objectModel) };
+                newInstances = new LwM2mInstanceEnabler[] { instanceFactory.create(objectModel, 0) };
             }
         }
         return newInstances;
@@ -171,9 +178,12 @@ public class ObjectsInitializer {
     protected LwM2mInstanceEnablerFactory getClassFactory(final Class<? extends LwM2mInstanceEnabler> clazz) {
         LwM2mInstanceEnablerFactory factory = new LwM2mInstanceEnablerFactory() {
             @Override
-            public LwM2mInstanceEnabler create(ObjectModel model) {
+            public LwM2mInstanceEnabler create(ObjectModel model, int instanceId) {
                 try {
-                    return clazz.newInstance();
+                    LwM2mInstanceEnabler newInstance = clazz.newInstance();
+                    newInstance.setModel(model);
+                    newInstance.setId(instanceId);
+                    return newInstance;
                 } catch (InstantiationException | IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }

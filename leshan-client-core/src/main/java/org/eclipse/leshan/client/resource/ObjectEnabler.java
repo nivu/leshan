@@ -109,7 +109,7 @@ public class ObjectEnabler extends BaseObjectEnabler {
             }
         }
 
-        LwM2mInstanceEnabler newInstance = instanceFactory.create(getObjectModel());
+        LwM2mInstanceEnabler newInstance = instanceFactory.create(getObjectModel(), instanceId);
 
         for (LwM2mResource resource : request.getResources()) {
             newInstance.write(resource.getId(), resource);
@@ -127,8 +127,11 @@ public class ObjectEnabler extends BaseObjectEnabler {
         // Manage Object case
         if (path.isObject()) {
             List<LwM2mObjectInstance> lwM2mObjectInstances = new ArrayList<>();
-            for (Entry<Integer, LwM2mInstanceEnabler> entry : instances.entrySet()) {
-                lwM2mObjectInstances.add(getLwM2mObjectInstance(entry.getKey(), entry.getValue(), identity, false));
+            for (LwM2mInstanceEnabler instance : instances.values()) {
+                ReadResponse response = instance.read(identity);
+                if (response.isSuccess()) {
+                    lwM2mObjectInstances.add((LwM2mObjectInstance) response.getContent());
+                }
             }
             return ReadResponse.success(new LwM2mObject(getId(), lwM2mObjectInstances));
         }
@@ -139,7 +142,7 @@ public class ObjectEnabler extends BaseObjectEnabler {
             return ReadResponse.notFound();
 
         if (path.getResourceId() == null) {
-            return ReadResponse.success(getLwM2mObjectInstance(path.getObjectInstanceId(), instance, identity, false));
+            return instance.read(identity);
         }
 
         // Manage Resource case

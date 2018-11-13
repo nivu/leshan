@@ -18,6 +18,5 @@ package org.eclipse.leshan.client.resource;
 import org.eclipse.leshan.core.model.ObjectModel;
 
 public interface LwM2mInstanceEnablerFactory {
-
-    LwM2mInstanceEnabler create(ObjectModel model);
+    LwM2mInstanceEnabler create(ObjectModel model, int instanceId);;
 }

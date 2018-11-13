@@ -21,7 +21,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.leshan.client.request.ServerIdentity;
 import org.eclipse.leshan.core.model.ObjectModel;
+import org.eclipse.leshan.core.model.ResourceModel;
+import org.eclipse.leshan.core.node.LwM2mObjectInstance;
 import org.eclipse.leshan.core.node.LwM2mResource;
 import org.eclipse.leshan.core.response.ExecuteResponse;
 import org.eclipse.leshan.core.response.ObserveResponse;
@@ -31,6 +34,26 @@ import org.eclipse.leshan.core.response.WriteResponse;
 public class BaseInstanceEnabler implements LwM2mInstanceEnabler {
 
     private List<ResourceChangedListener> listeners = new ArrayList<>();
+    private ObjectModel model;
+    private int id;
+
+    @Override
+    public void setModel(ObjectModel model) {
+        this.model = model;
+    }
+
+    public ObjectModel getModel() {
+        return model;
+    }
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
 
     @Override
     public void addResourceChangedListener(ResourceChangedListener listener) {
@@ -46,6 +69,20 @@ public class BaseInstanceEnabler implements LwM2mInstanceEnabler {
         for (ResourceChangedListener listener : listeners) {
             listener.resourcesChanged(resourceIds);
         }
+    }
+
+    @Override
+    public ReadResponse read(ServerIdentity serverIdentity) {
+        List<LwM2mResource> resources = new ArrayList<>();
+        for (ResourceModel resourceModel : model.resources.values()) {
+            // check, if internal request (SYSTEM) or readable
+            if (serverIdentity.isSystem() || resourceModel.operations.isReadable()) {
+                ReadResponse response = read(resourceModel.id);
+                if (response.isSuccess() && response.getContent() instanceof LwM2mResource)
+                    resources.add((LwM2mResource) response.getContent());
+            }
+        }
+        return ReadResponse.success(new LwM2mObjectInstance(id, resources));
     }
 
     @Override

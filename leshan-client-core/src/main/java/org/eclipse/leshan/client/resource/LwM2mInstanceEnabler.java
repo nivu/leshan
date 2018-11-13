@@ -20,7 +20,9 @@ package org.eclipse.leshan.client.resource;
 
 import java.util.List;
 
+import org.eclipse.leshan.client.request.ServerIdentity;
 import org.eclipse.leshan.core.model.ObjectModel;
+import org.eclipse.leshan.core.node.LwM2mObjectInstance;
 import org.eclipse.leshan.core.node.LwM2mResource;
 import org.eclipse.leshan.core.response.ExecuteResponse;
 import org.eclipse.leshan.core.response.ObserveResponse;
@@ -48,6 +50,16 @@ import org.eclipse.leshan.core.response.WriteResponse;
 public interface LwM2mInstanceEnabler {
 
     /**
+     * @param id this id of this instance.
+     */
+    void setId(int id);
+
+    /**
+     * @param model of the object of this instance.
+     */
+    void setModel(ObjectModel model);
+
+    /**
      * Adds a callback handler that gets notified about changes to any of this LWM2M object instance's resources.
      * 
      * @param listener the handler to add, a <code>null</code> value is silently ignored
@@ -60,6 +72,17 @@ public interface LwM2mInstanceEnabler {
      * @param listener the handler to remove, a <code>null</code> value is silently ignored
      */
     void removeResourceChangedListener(ResourceChangedListener listener);
+
+    /**
+     * Gets values of all readable resources of this instance.
+     * 
+     * @param identity the identity of the requester. This could be an internal call in this case
+     *        <code> identity == ServerIdentity.SYSTEM</code>.
+     * 
+     * @return a success response with an {@link LwM2mObjectInstance} as content or a failure response with optional
+     *         explanation message.
+     */
+    ReadResponse read(ServerIdentity identity);
 
     /**
      * Gets the current value of one of this LWM2M object instance's resources.
